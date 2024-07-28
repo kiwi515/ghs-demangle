@@ -183,8 +183,21 @@ namespace ghs_demangle
         /* e.g. "h__Fi" => "h(int)" */
         static string Demangle(string name)
         {
-            if (name.Contains("__ghs_thunk__")) {
+            /* Compiler-generated thunk function */
+            if (name.Contains("__ghs_thunk__"))
+            {
                 name = name.Substring(25);
+            }
+
+            /* C function with static linkage */
+            bool staticLinkage = name.Contains("_static_in")
+                && name.EndsWith("_inf", StringComparison.Ordinal);
+
+            /* e.g. "__h_Fi_static_in_main_inf" => "static h(int)" */
+            if (staticLinkage)
+            {
+                name = name.Substring(2,
+                    name.IndexOf("_static_in", StringComparison.Ordinal) - 2);
             }
 
             name = Decompress(name);
@@ -202,6 +215,10 @@ namespace ghs_demangle
             {
                 declStatic = "static ";
                 mangle = mangle.Substring(3);
+            }
+            else if (staticLinkage)
+            {
+                declStatic = "static ";
             }
             else
                 declStatic = "";
