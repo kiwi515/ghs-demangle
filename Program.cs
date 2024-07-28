@@ -189,10 +189,18 @@ namespace ghs_demangle
                 name = name.Substring(25);
             }
 
+            /* Compiler-generated static init function */
+            /* e.g. "__sti___8_main_cpp_13ee4f5c" => "main_cpp::static init" */
+            if (name.StartsWith("__sti___", StringComparison.Ordinal))
+            {
+                int fileStart = name.IndexOf("_", "__sti___".Length) + 1;
+                int fileEnd = name.LastIndexOf("_");
+                return name.Substring(fileStart, fileEnd - fileStart) + "::static init";
+            }
+
             /* C function with static linkage */
             bool staticLinkage = name.Contains("_static_in")
                 && name.EndsWith("_inf", StringComparison.Ordinal);
-
             /* e.g. "__h_Fi_static_in_main_inf" => "static h(int)" */
             if (staticLinkage)
             {
